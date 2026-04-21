@@ -77,10 +77,10 @@ export const TONE_INSTRUCTIONS: Record<HumanizeTone, string> = {
   creative:       'Imaginative, expressive. Metaphors welcome. Break conventions deliberately.',
 };
 
-// Semaphore: allow max 3 concurrent AI calls
+// Semaphore: allow max 6 concurrent AI calls
 let activeAiCalls = 0;
 async function aiThrottle() {
-  while (activeAiCalls >= 3) await new Promise(r => setTimeout(r, 300));
+  while (activeAiCalls >= 6) await new Promise(r => setTimeout(r, 300));
   activeAiCalls++;
 }
 
@@ -1265,14 +1265,14 @@ export async function* humanizeSingleVersionStream(
     if (effectiveVoiceSample && effectiveVoiceSample.trim().length > 0) {
       userMessage += `\n\n=== VOICE CALIBRATION SAMPLE ===\nPlease deeply analyze the writing style, vocabulary, sentence length, and paragraph structure of the following sample. You MUST match this exact writing style in your final output:\n\n${effectiveVoiceSample}`;
     }
-    userMessage += `\n\n=== CRITICAL PRESERVATION RULES ===\n1. NO SUMMARIZATION ALLOWED. The input is exactly ${wordCount} words. Your output MUST be exactly the same length or longer. You must reconstruct it line-by-line, sentence-by-sentence. Do not condense paragraphs.\n2. PRESERVE ALL ORIGINAL HEADINGS (###, ##, etc) and bullet points perfectly. DO NOT let any "anti-pattern" rules persuade you to delete a heading or convert it to prose. If you delete a heading, it is a catastrophic failure.\n3. DO NOT output conversational filler like "Here is the revised text". Just output the article.`;
+    userMessage += `\n\n=== CRITICAL PRESERVATION RULES ===\n1. PRESERVE ALL FACTS, MEANING, HEADINGS, AND BULLET POINTS.\n2. DO NOT SUMMARIZE OR OMIT IMPORTANT INFORMATION.\n3. YOU MAY freely rewrite sentence structure, merge short sentences, split long sentences, and reshape paragraphs.\n4. Output should match the same topic coverage — NOT the same sentence structure.\n5. DO NOT output filler like "Here is the revised text". Just output the article.`;
 
     let fullRawContent = '';
     try {
       let yieldedLength = 0;
       let isInsideFinalText = false;
 
-      const streamTokens = (versionIndex === 1) ? 8192 : 8000;
+      const streamTokens = (versionIndex === 1) ? 10000 : 8000;
       for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, streamTokens)) {
         fullRawContent += token;
         
@@ -1350,8 +1350,8 @@ export async function* humanizeSingleVersionStream(
       finalContent = finalContent.replace(/^[:\* \- \n]+/, '').replace(/[\* \n]+$/, '').trim();
       
       if (versionIndex === 1) {
-        finalContent = await flagAndRehuman(apiKey, finalContent);
         finalContent = postprocess(finalContent);
+        finalContent = await flagAndRehuman(apiKey, finalContent);
       }
       
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
@@ -1384,14 +1384,14 @@ async function processSingleChunk(
 
   const wordCount = content.split(/\s+/).length;
 
-  userMessage += `\n\n=== CRITICAL PRESERVATION RULES ===\n1. NO SUMMARIZATION ALLOWED. The input is exactly ${wordCount} words. Your output MUST be exactly the same length or longer. You must reconstruct it line-by-line, sentence-by-sentence. Do not condense paragraphs.\n2. PRESERVE ALL ORIGINAL HEADINGS (###, ##, etc) and bullet points perfectly. DO NOT let any "anti-pattern" rules persuade you to delete a heading or convert it to prose. If you delete a heading, it is a catastrophic failure.\n3. DO NOT output conversational filler like "Here is the revised text". Just output the article.`;
+  userMessage += `\n\n=== CRITICAL PRESERVATION RULES ===\n1. PRESERVE ALL FACTS, MEANING, HEADINGS, AND BULLET POINTS.\n2. DO NOT SUMMARIZE OR OMIT IMPORTANT INFORMATION.\n3. YOU MAY freely rewrite sentence structure, merge short sentences, split long sentences, and reshape paragraphs.\n4. Output should match the same topic coverage — NOT the same sentence structure.\n5. DO NOT output filler like "Here is the revised text". Just output the article.`;
 
   const res = await callApi(
     apiKey,
     userMessage,
     prompt,
     0.8,
-    6000 
+    8000 
   );
 
   if (res.success && res.content) {
@@ -1442,8 +1442,8 @@ async function processSingleChunk(
     // This adds deterministic AI-phrase removal, collocation swaps, sentence manipulation,
     // flow disruption, and paragraph randomization ON TOP of the AI rewrite.
     if (versionIndex === 1) {
-      finalContent = await flagAndRehuman(apiKey, finalContent);
       finalContent = postprocess(finalContent);
+      finalContent = await flagAndRehuman(apiKey, finalContent);
     }
     
     res.content = finalContent;
