@@ -1222,9 +1222,46 @@ export async function* humanizeSingleVersionStream(
 
     let fullRawContent = '';
     try {
+      let yieldedLength = 0;
+      let isInsideFinalText = false;
+
       for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, 6000)) {
         fullRawContent += token;
-        yield { type: 'token', chunkIndex: i + 1, totalChunks: chunks.length, content: token };
+        
+        if (!isInsideFinalText) {
+           const ft1 = fullRawContent.indexOf('<final_text>');
+           const ft2 = fullRawContent.indexOf('&lt;final_text&gt;');
+           let startIndex = -1;
+           
+           if (ft1 !== -1) startIndex = ft1 + 12;
+           else if (ft2 !== -1) startIndex = ft2 + 18;
+           else if (fullRawContent.indexOf('</thinking>') !== -1) startIndex = fullRawContent.indexOf('</thinking>') + 11;
+           
+           if (startIndex !== -1) {
+               isInsideFinalText = true;
+               yieldedLength = startIndex;
+               
+               // Trim any immediate leading whitespace right after the tag for a cleaner stream start
+               while (yieldedLength < fullRawContent.length && (fullRawContent[yieldedLength] === '\n' || fullRawContent[yieldedLength] === ' ' || fullRawContent[yieldedLength] === '\r')) {
+                   yieldedLength++;
+               }
+           }
+        }
+        
+        if (isInsideFinalText) {
+           const end1 = fullRawContent.indexOf('</final_text>', yieldedLength);
+           const end2 = fullRawContent.indexOf('&lt;/final_text&gt;', yieldedLength);
+           
+           let maxYieldIdx = fullRawContent.length;
+           if (end1 !== -1) maxYieldIdx = end1;
+           else if (end2 !== -1) maxYieldIdx = end2;
+           
+           if (maxYieldIdx > yieldedLength) {
+             const stringToYield = fullRawContent.substring(yieldedLength, maxYieldIdx);
+             yieldedLength += stringToYield.length;
+             yield { type: 'token', chunkIndex: i + 1, totalChunks: chunks.length, content: stringToYield };
+           }
+        }
       }
 
       // Perform cleanup exactly like processSingleChunk
