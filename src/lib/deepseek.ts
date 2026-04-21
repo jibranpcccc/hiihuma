@@ -9,6 +9,49 @@ export interface AiResult {
   error: string;
 }
 
+export interface PersonaData {
+  FirstName: string;
+  LastName: string;
+  Address: string;
+  City: string;
+  State: string;
+  ZipCode: string;
+  Phone: string;
+  JobTitle: string;
+  DOB: string;
+}
+
+export interface ProfileBundle {
+  success: boolean;
+  shortBio: string;
+  description: string;
+  wordpressAbout: string;
+  persona: PersonaData | null;
+}
+
+export interface AiNavigationResult {
+  success: boolean;
+  isRegistrationPage?: boolean;
+  steps?: any[];
+  submitButtonSelector?: string;
+  captchaType?: string;
+  emailVerificationLikely?: boolean;
+  notes?: string;
+  [key: string]: any;
+}
+
+export interface AiPostSubmitResult {
+  [key: string]: any;
+}
+
+export interface AiBioInjectionResult {
+  [key: string]: any;
+}
+
+export interface ExecutionStep {
+  [key: string]: any;
+}
+
 export type HumanizeLevel = 'light' | 'medium' | 'aggressive' | 'ninja';
 export type HumanizeTone = 
   'conversational' | 'journalistic' | 'academic' | 
@@ -224,7 +267,7 @@ export async function generateFullProfile(
     shortBio: bio,
     description: desc,
     wordpressAbout: bio,
-    persona: persona ?? undefined,
+    persona: persona ?? null,
   };
 }
 
