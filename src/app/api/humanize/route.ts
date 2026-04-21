@@ -8,7 +8,10 @@ export const maxDuration = 60; // 60 seconds max timeout for Vercel/NextJS routi
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    let { apiKey, content, versionIndex, voiceSample } = body;
+    let { apiKey, content, versionIndex, voiceSample, level, tone } = body;
+
+    level = level || 'ninja';
+    tone = tone || 'conversational';
 
     if (!apiKey) {
       const settings = loadSettings();
@@ -32,7 +35,7 @@ export async function POST(req: Request) {
     const stream = new ReadableStream({
       async start(controller) {
         try {
-          const generator = humanizeSingleVersionStream(apiKey, content, versionIndex, voiceSample);
+          const generator = humanizeSingleVersionStream(apiKey, content, versionIndex, voiceSample, level, tone);
           
           for await (const event of generator) {
             const dataString = JSON.stringify(event) + '\n';

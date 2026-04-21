@@ -9,6 +9,31 @@ export interface AiResult {
   error: string;
 }
 
+export type HumanizeLevel = 'light' | 'medium' | 'aggressive' | 'ninja';
+export type HumanizeTone = 
+  'conversational' | 'journalistic' | 'academic' | 
+  'professional' | 'technical' | 'persuasive' | 
+  'storytelling' | 'humorous' | 'creative';
+
+export const LEVEL_INSTRUCTIONS: Record<HumanizeLevel, string> = {
+  light:      'Make MINIMAL changes (5-10% of text). Fix contractions, replace formal words, vary 2-3 sentence lengths only. Preserve all structure.',
+  medium:     'Make MODERATE changes (~30%). Restructure sentences, vary lengths, add 1-2 personal touches. Keep core meaning and structure.',
+  aggressive: 'Make HEAVY changes (~70%). New voice, colloquialisms, fragments, rhetorical questions, dramatic variation.',
+  ninja:      'MAXIMUM transformation. Burstiness engineering, perplexity manipulation, anti-pattern avoidance, controlled imperfections. Target 0% AI detection.',
+};
+
+export const TONE_INSTRUCTIONS: Record<HumanizeTone, string> = {
+  conversational: 'Friendly, relaxed tone. Use contractions freely. Write like talking to a friend.',
+  journalistic:   'Direct, fact-driven. Short punchy paragraphs. Inverted pyramid structure.',
+  academic:       'Rigorous but accessible. Evidence-based claims. Thoughtful qualifiers.',
+  professional:   'Competent and clear. No fluff. Business register without being stiff.',
+  technical:      'Precise and methodical. Use domain terms naturally. Step-by-step clarity.',
+  persuasive:     'Confident, compelling. Build argument. Use rhetorical questions strategically.',
+  storytelling:   'Narrative flow. Anecdotes. Scenes. End paragraphs on an interesting beat.',
+  humorous:       'Witty, irreverent. Unexpected comparisons. Self-aware asides.',
+  creative:       'Imaginative, expressive. Metaphors welcome. Break conventions deliberately.',
+};
+
 // Semaphore: allow max 3 concurrent AI calls
 let activeAiCalls = 0;
 async function aiThrottle() {
@@ -60,7 +85,7 @@ export async function* callApiStream(
   userMessage: string,
   systemPrompt: string = 'You are a professional assistant. Generate unique, natural-sounding response. Never include quotes or formatting marks around your response.',
   temperature: number = 0.8,
-  maxTokens: number = 6000
+  maxTokens: number = 8000
 ): AsyncGenerator<string, void, unknown> {
   await aiThrottle();
   try {
@@ -1024,60 +1049,39 @@ CRITICAL RULES — Follow these EXACTLY:
 
 METHODOLOGY: Deep Semantic Restructuring: Do not just swap synonyms. Break the original text down to its core facts, throw away the original sentence structure entirely, and rebuild the concepts from scratch using a completely different syntactic tree.
 
+PERPLEXITY ENGINEERING: AI detectors measure "perplexity" — how surprising your word choices are.
+AI text scores LOW perplexity (always picks the most expected word).
+You must inject HIGH perplexity:
+- Use unexpected but completely natural word choices
+- Include idiomatic expressions specific to the topic niche
+- Reference specific concrete details (numbers, names, dates) instead of vague claims
+- Use domain-specific language that feels native, not inserted
+- Occasionally choose the second-best word instead of the obvious one
+
 OUTPUT: Return ONLY the rewritten text. No explanations, no meta-commentary, no "Here is the rewrite".`
 ];
 
-// ==================== AUTO VOICE CALIBRATION ====================
-// Analyzes the user's input content, then generates a human voice sample
-// that matches the topic, tone, and niche of THAT specific article.
+function buildVoiceCalibration(voiceSample?: string): string {
+  if (!voiceSample || voiceSample.trim().length === 0) return '';
+  return `
+VOICE MATCHING — The user has provided their own writing sample below.
+Analyze it BEFORE rewriting. Note:
+- Sentence length patterns (short/punchy or long/flowing?)
+- Word choice level (casual, academic, or in between?)
+- Punctuation habits (dashes? parenthetical asides? semicolons?)
+- How they start paragraphs
+- Any recurring phrases or verbal tics
+Then match THIS voice in your rewrite. Replace AI patterns with patterns from this sample.
 
-const VOICE_CALIBRATION_PROMPT = `You are a voice calibration engine. Your job is to read the article below and write a SHORT (150-200 word) writing sample that sounds like a REAL HUMAN expert in that exact topic wrote it.
-
-RULES:
-- Write in FIRST PERSON as someone with 10-15 years of hands-on experience in this specific topic
-- Use contractions everywhere (I've, don't, can't, it's, that's, they're)
-- Mix short punchy sentences (3-5 words) with longer flowing ones
-- Include at least ONE specific personal anecdote or client/customer story
-- Use casual connectors: "honestly", "look", "seriously", "the thing is"
-- Include ONE imperfect/unfinished thought
-- NO formal vocabulary. Write like you're talking to a friend over coffee.
-- NO lists, NO bullet points, NO headings
-- The sample should feel like a blog post intro, NOT an essay
-
-CRITICAL: Match the EXACT TOPIC of the article. If it's about hair, write as a hairdresser. If it's about cooking, write as a home chef. If it's about fitness, write as a personal trainer. Match the niche precisely.
-
-Return ONLY the writing sample. Nothing else.`;
-
-async function generateVoiceCalibration(apiKey: string, content: string): Promise<string> {
-  // Take first 1500 chars of content to understand the topic/niche
-  const contentPreview = content.slice(0, 1500);
-  
-  const res = await callApi(
-    apiKey,
-    `Analyze this article's topic and write the voice sample:\n\n${contentPreview}`,
-    VOICE_CALIBRATION_PROMPT,
-    0.9,
-    800
-  );
-  
-  if (res.success && res.content && res.content.trim().length > 50) {
-    return res.content.trim();
-  }
-  
-  // Fallback: generic human voice if generation fails
-  return `Look, I've been working in this space for years and honestly the biggest thing people get wrong is overthinking it. Just start with the basics. I had a client last month who was so stuck on doing everything perfectly that they weren't doing anything at all. That's the trap. You don't need fancy tools or expensive courses. What you need is to stop reading about it and actually do the thing. I know that sounds blunt but it's true. The people who get real results? They're the ones who stopped waiting for permission.`;
+USER'S WRITING SAMPLE:
+"""${voiceSample}"""
+`;
 }
 
 export async function humanizeSingleVersion(apiKey: string, content: string, versionIndex: number, voiceSample: string = ''): Promise<AiResult> {
   const CHUNK_SIZE = 8000; 
 
-  // Step 1: Auto-generate voice calibration from the input content (or use manual sample)
-  let effectiveVoiceSample: string;
-  if (voiceSample && voiceSample.trim().length > 0) {
-    effectiveVoiceSample = voiceSample;
-  } else {
-    effectiveVoiceSample = await generateVoiceCalibration(apiKey, content);
-  }
+  let effectiveVoiceSample = voiceSample;
 
   if (content.length <= CHUNK_SIZE) {
     return await processSingleChunk(apiKey, content, versionIndex, effectiveVoiceSample);
@@ -1163,7 +1167,9 @@ export async function* humanizeSingleVersionStream(
   apiKey: string, 
   content: string, 
   versionIndex: number, 
-  voiceSample: string = ''
+  voiceSample: string = '',
+  level: HumanizeLevel = 'ninja',
+  tone: HumanizeTone = 'conversational'
 ): AsyncGenerator<StreamEvent, void, unknown> {
   const CHUNK_SIZE = 8000; 
 
@@ -1215,6 +1221,10 @@ export async function* humanizeSingleVersionStream(
     const wordCount = chunkContent.split(/\s+/).length;
     
     let userMessage = `Please humanize the following text:\n\n${chunkContent}`;
+    
+    userMessage += `\n\n=== REVISION LEVEL (${level.toUpperCase()}) ===\n${LEVEL_INSTRUCTIONS[level]}`;
+    userMessage += `\n\n=== TARGET TONE (${tone.toUpperCase()}) ===\n${TONE_INSTRUCTIONS[tone]}`;
+
     if (effectiveVoiceSample && effectiveVoiceSample.trim().length > 0) {
       userMessage += `\n\n=== VOICE CALIBRATION SAMPLE ===\nPlease deeply analyze the writing style, vocabulary, sentence length, and paragraph structure of the following sample. You MUST match this exact writing style in your final output:\n\n${effectiveVoiceSample}`;
     }
@@ -1302,6 +1312,7 @@ export async function* humanizeSingleVersionStream(
       finalContent = finalContent.replace(/^[:\* \- \n]+/, '').replace(/[\* \n]+$/, '').trim();
       
       if (versionIndex === 1) {
+        finalContent = await flagAndRehuman(apiKey, finalContent);
         finalContent = postprocess(finalContent);
       }
       
@@ -1314,10 +1325,21 @@ export async function* humanizeSingleVersionStream(
   }
 }
 
-async function processSingleChunk(apiKey: string, content: string, versionIndex: number, voiceSample: string = ''): Promise<AiResult> {
+async function processSingleChunk(
+  apiKey: string, 
+  content: string, 
+  versionIndex: number, 
+  voiceSample: string = '',
+  level: HumanizeLevel = 'ninja',
+  tone: HumanizeTone = 'conversational'
+): Promise<AiResult> {
   const prompt = HUMANIZER_PROMPTS[versionIndex] || HUMANIZER_PROMPTS[0];
   
   let userMessage = `Please humanize the following text:\n\n${content}`;
+  
+  userMessage += `\n\n=== REVISION LEVEL (${level.toUpperCase()}) ===\n${LEVEL_INSTRUCTIONS[level]}`;
+  userMessage += `\n\n=== TARGET TONE (${tone.toUpperCase()}) ===\n${TONE_INSTRUCTIONS[tone]}`;
+
   if (voiceSample && voiceSample.trim().length > 0) {
     userMessage += `\n\n=== VOICE CALIBRATION SAMPLE ===\nPlease deeply analyze the writing style, vocabulary, sentence length, and paragraph structure of the following sample. You MUST match this exact writing style in your final output:\n\n${voiceSample}`;
   }
@@ -1382,6 +1404,7 @@ async function processSingleChunk(apiKey: string, content: string, versionIndex:
     // This adds deterministic AI-phrase removal, collocation swaps, sentence manipulation,
     // flow disruption, and paragraph randomization ON TOP of the AI rewrite.
     if (versionIndex === 1) {
+      finalContent = await flagAndRehuman(apiKey, finalContent);
       finalContent = postprocess(finalContent);
     }
     
@@ -1389,4 +1412,48 @@ async function processSingleChunk(apiKey: string, content: string, versionIndex:
   }
 
   return res;
+}
+
+// Pass 2: Per-Sentence Flagging
+async function flagAndRehuman(apiKey: string, chunk: string): Promise<string> {
+  // Step 1: Ask model which sentences still sound AI-generated
+  const flagResult = await callApi(
+    apiKey,
+    `Read this text and return ONLY a JSON array of the exact sentences that still sound AI-generated. 
+Return raw JSON array only, no explanation. Text:\n\n${chunk}`,
+    'You are an AI detection expert. Return only a JSON array of flagged sentences.',
+    0.3,
+    1000
+  );
+
+  let flagged: string[] = [];
+  try {
+    flagged = JSON.parse(cleanJson(flagResult.content));
+    if (!Array.isArray(flagged)) flagged = [];
+  } catch { return chunk; }
+
+  if (!flagged.length) return chunk;
+
+  // Step 2: Rewrite ONLY the flagged sentences
+  let result = chunk;
+  for (const sentence of flagged) {
+    if (!sentence || sentence.length < 10 || typeof sentence !== 'string') continue;
+    
+    const fix = await callApi(
+      apiKey,
+      `Rewrite ONLY this sentence to sound completely human. 
+Keep the same meaning. Return ONLY the rewritten sentence, nothing else. Do not wrap in quotes.
+Sentence: "${sentence}"`,
+      'You are a human writing expert. Rewrite the sentence naturally and imperceptibly.',
+      0.9,
+      200
+    );
+    if (fix.success && fix.content) {
+      // Escape special regex characters in the sentence just in case
+      let contentToReplace = fix.content.trim();
+      // Only replace the first match
+      result = result.replace(sentence, contentToReplace);
+    }
+  }
+  return result;
 }

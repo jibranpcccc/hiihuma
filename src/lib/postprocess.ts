@@ -23,6 +23,24 @@ function joinParagraphs(paragraphs: string[]): string {
   return paragraphs.join('\n\n');
 }
 
+// ==================== FRAGMENTED HEADER REMOVAL ====================
+// Removes "## Heading\n\nThis section covers heading." one-liner warm-ups
+function removeFragmentedHeaders(text: string): string {
+  return text.replace(
+    /(#{1,4}\s+.+)\n\n([^\n]{1,80})\n\n/g,
+    (match, heading, oneLiner) => {
+      // If the one-liner is just restating the heading (short + ends in period), remove it
+      const headingWords = heading.replace(/^#+\s+/, '').toLowerCase().split(/\s+/);
+      const oneLinerWords = oneLiner.toLowerCase().split(/\s+/);
+      const overlap = headingWords.filter((w: string) => oneLinerWords.includes(w)).length;
+      if (overlap >= 2 && oneLiner.length < 80) {
+        return heading + '\n\n'; // strip the one-liner
+      }
+      return match;
+    }
+  );
+}
+
 // ==================== AGGRESSIVE AI VOCABULARY REMOVAL ====================
 
 function aggressiveSynonymSwap(text: string): string {
@@ -253,6 +271,9 @@ function randomizeParagraphs(text: string): string {
  */
 export function postprocess(text: string): string {
   let result = text;
+
+  // 0. Remove fragmented heading warmups
+  result = removeFragmentedHeaders(result);
 
   // 1. Aggressive AI vocabulary removal
   result = aggressiveSynonymSwap(result);
