@@ -1272,7 +1272,7 @@ export async function* humanizeSingleVersionStream(
       let yieldedLength = 0;
       let isInsideFinalText = false;
 
-      const streamTokens = (versionIndex === 1) ? 10000 : 8000;
+      const streamTokens = (versionIndex === 1) ? 8192 : 8000;
       for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, streamTokens)) {
         fullRawContent += token;
         
