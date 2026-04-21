@@ -1173,13 +1173,7 @@ export async function* humanizeSingleVersionStream(
 ): AsyncGenerator<StreamEvent, void, unknown> {
   const CHUNK_SIZE = 8000; 
 
-  let effectiveVoiceSample: string;
-  if (voiceSample && voiceSample.trim().length > 0) {
-    effectiveVoiceSample = voiceSample;
-  } else {
-    yield { type: 'voice_generation', message: 'Analyzing article to generate custom voice calibration...' };
-    effectiveVoiceSample = await generateVoiceCalibration(apiKey, content);
-  }
+  const effectiveVoiceSample = (voiceSample && voiceSample.trim().length > 0) ? voiceSample : '';
 
   let chunks: string[] = [];
   let start = 0;
@@ -1235,7 +1229,8 @@ export async function* humanizeSingleVersionStream(
       let yieldedLength = 0;
       let isInsideFinalText = false;
 
-      for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, 6000)) {
+      const streamTokens = (versionIndex === 1) ? 10000 : 8000;
+      for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, streamTokens)) {
         fullRawContent += token;
         
         if (!isInsideFinalText) {
