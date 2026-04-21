@@ -76,12 +76,16 @@ export default function HumanizerPage() {
 
           while (true) {
             const { done, value } = await reader.read();
-            if (done) break;
             
-            buffer += decoder.decode(value, { stream: true });
+            if (value) {
+              buffer += decoder.decode(value, { stream: !done });
+            }
+
+            // Handle any complete lines in the buffer
             const lines = buffer.split('\n');
-            buffer = lines.pop() || '';
-            
+            // If done is true, the last string is the remaining buffer and must be processed
+            buffer = done ? '' : (lines.pop() || '');
+
             for (const line of lines) {
               const trimmed = line.trim();
               if (!trimmed) continue;
@@ -110,7 +114,6 @@ export default function HumanizerPage() {
                     return updated;
                   });
                 } else if (event.type === 'token') {
-                  // Text-based progress bar instead of raw text streaming
                   const percentage = Math.round((event.chunkIndex / event.totalChunks) * 100);
                   const blocks = Math.round(percentage / 10);
                   const bar = '▓'.repeat(blocks) + '░'.repeat(10 - blocks);
@@ -118,8 +121,7 @@ export default function HumanizerPage() {
                   
                   const displayContent = [...finalCleanedChunks, progressMessage].filter(Boolean).join('\n\n\n');
                   
-                  // Only update state occasionally to save CPU cycles on tokens
-                  if (Math.random() < 0.1) {
+                  if (Math.random() < 0.1 || percentage === 100) {
                     setVersions(prev => {
                       const updated = [...prev];
                       updated[index] = { 
@@ -148,6 +150,8 @@ export default function HumanizerPage() {
                 }
               }
             }
+
+            if (done) break;
           }
         } catch (e: any) {
           setVersions(prev => {
