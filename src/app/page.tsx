@@ -86,10 +86,19 @@ export default function HumanizerPage() {
               const trimmed = line.trim();
               if (!trimmed) continue;
               
+              let event;
+              let parsed = false;
               try {
-                const event = JSON.parse(trimmed);
-                
-                if (event.type === 'voice_generation') {
+                event = JSON.parse(trimmed);
+                parsed = true;
+              } catch (e: any) {
+                // Ignore incomplete JSON chunks from buffer boundary issues
+              }
+
+              if (parsed && event) {
+                if (event.type === 'error') {
+                  throw new Error(event.message);
+                } else if (event.type === 'voice_generation') {
                   setVersions(prev => {
                     const updated = [...prev];
                     updated[index] = { 
@@ -136,11 +145,7 @@ export default function HumanizerPage() {
                     } as any;
                     return updated;
                   });
-                } else if (event.type === 'error') {
-                  throw new Error(event.message);
                 }
-              } catch (e: any) {
-                // Ignore incomplete JSON chunks from buffer boundary issues
               }
             }
           }
