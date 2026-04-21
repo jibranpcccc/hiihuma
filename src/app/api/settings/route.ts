@@ -6,9 +6,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const s = loadSettings();
+  const key = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || s.DeepSeekApiKey;
   return NextResponse.json({
-    deepSeekApiKey: s.DeepSeekApiKey ? '***set***' : '',
-    hasDeepSeek: !!s.DeepSeekApiKey,
+    deepSeekApiKey: key ? '***set***' : '',
+    hasDeepSeek: !!key,
   });
 }
 

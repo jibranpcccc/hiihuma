@@ -15,7 +15,7 @@ export async function POST(req: Request) {
 
     if (!apiKey) {
       const settings = loadSettings();
-      apiKey = settings.DeepSeekApiKey;
+      apiKey = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || settings.DeepSeekApiKey;
     }
 
     if (!apiKey) {
