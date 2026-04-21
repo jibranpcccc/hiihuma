@@ -1058,7 +1058,7 @@ You must inject HIGH perplexity:
 - Use domain-specific language that feels native, not inserted
 - Occasionally choose the second-best word instead of the obvious one
 
-OUTPUT: Return ONLY the rewritten text. No explanations, no meta-commentary, no "Here is the rewrite".`
+***CRITICAL INSTRUCTION FOR API OUTPUT:*** You sit behind an automated API. You MUST perform the full two-pass system conceptually (write an initial draft, evaluate it with "What makes the below so obviously AI generated?", and write a final draft). However, you MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. CRITICAL INSTRUCTION: You MUST wrap your final, polished humanized text (the final draft) inside <final_text>...</final_text> tags. DO NOT output any conversational text like "Here is the final draft". Your output must rely completely on these XML tags.`
 ];
 
 function buildVoiceCalibration(voiceSample?: string): string {
