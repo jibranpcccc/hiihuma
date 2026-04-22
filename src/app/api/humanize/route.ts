@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { humanizeSingleVersionStream, HUMANIZER_NAMES } from '@/lib/deepseek';
-import { loadSettings } from '@/lib/settings';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -15,8 +14,7 @@ export async function POST(req: Request) {
     tone = tone || 'conversational';
 
     if (!apiKey) {
-      const settings = loadSettings();
-      apiKey = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || settings.DeepSeekApiKey;
+      apiKey = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY;
     }
 
     if (!apiKey) {
