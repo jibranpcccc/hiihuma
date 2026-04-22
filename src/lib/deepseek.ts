@@ -965,7 +965,10 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ## Output Format
 
+CRITICAL INSTRUCTION FOR API OUTPUT: You sit behind an automated API. You MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. You MUST wrap your final, polished humanized text inside <final_text>...</final_text> tags. DO NOT output any conversational text.
+
 Provide:
+<thinking>
 1. Draft rewrite
 2. "What makes the below so obviously AI generated?" (brief bullets)
 3. A brief summary of changes made (optional, if helpful)
@@ -1284,6 +1287,10 @@ export async function* humanizeSingleVersionStream(
            if (ft1 !== -1) startIndex = ft1 + 12;
            else if (ft2 !== -1) startIndex = ft2 + 18;
            else if (fullRawContent.indexOf('</thinking>') !== -1) startIndex = fullRawContent.indexOf('</thinking>') + 11;
+           else if (fullRawContent.length > 50 && fullRawContent.indexOf('<thinking>') === -1 && fullRawContent.indexOf('&lt;thinking&gt;') === -1) {
+               // The model clearly isn't using XML tags for thinking. It has just started pouring out raw text.
+               startIndex = 0;
+           }
            
            if (startIndex !== -1) {
                isInsideFinalText = true;
