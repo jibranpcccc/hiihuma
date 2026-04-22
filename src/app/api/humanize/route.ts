@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { humanizeSingleVersionStream, HUMANIZER_NAMES } from '@/lib/deepseek';
 import { loadSettings } from '@/lib/settings';
 
+export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds max timeout for Vercel/NextJS routing if deployed there
 
