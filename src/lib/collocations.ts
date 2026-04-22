@@ -77,7 +77,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'play an important role', to: ['really matter', 'be important', 'carry weight'] },
   { from: 'on the other hand', to: ['then again', 'but then', 'on the flip side', 'that said'] },
   { from: 'on the one hand', to: ['for one thing', 'sure', 'on one side'] },
-  { from: 'at the same time', to: ['simultaneously', 'meanwhile', 'all the while', 'but also'] },
+  { from: 'at the same time', to: ['simultaneously', 'all the while', 'but also'] },
   { from: 'at the end of the day', to: ['ultimately', 'when all is said and done', 'in the end'] },
   { from: 'for the most part', to: ['mostly', 'generally', 'by and large', 'usually'] },
   { from: 'for the purpose of', to: ['to', 'for', 'so we can', 'in order to'] },

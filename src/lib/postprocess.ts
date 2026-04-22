@@ -127,7 +127,7 @@ function manipulateSentenceLengths(text: string): string {
         chance(0.15)
       ) {
         const next = sentences[i + 1].trim();
-        const conjunction = randomPick(['and', 'but', 'while', 'whereas']);
+        const conjunction = randomPick(['and', 'but', 'so']);
         const merged = sentence.trim().replace(/[.!?]+$/, '') + ', ' + conjunction + ' ' +
           next.charAt(0).toLowerCase() + next.slice(1);
         result.push(merged);
@@ -178,16 +178,9 @@ function disruptFlow(text: string): string {
 
     const result = [...sentences];
 
-    // 15% chance: add a short emphasis sentence
-    if (chance(0.15) && result.length >= 3) {
-      const insertions = ['Right.', 'Exactly.', 'Makes sense.', 'Think about that.'];
-      const idx = 1 + Math.floor(Math.random() * (result.length - 1));
-      result.splice(idx, 0, randomPick(insertions));
-    }
-
     // 10% chance: start with a conjunction
     if (chance(0.10)) {
-      const conjunctions = ['And ', 'But ', 'So ', 'Plus '];
+      const conjunctions = ['And ', 'But ', 'So '];
       result[0] = randomPick(conjunctions) + result[0].charAt(0).toLowerCase() + result[0].slice(1);
     }
 
