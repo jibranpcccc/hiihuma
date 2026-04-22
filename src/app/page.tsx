@@ -69,6 +69,7 @@ export default function HumanizerPage() {
           const generator = humanizeSingleVersionStream(pApiKey, content, index, voiceSample, 'ninja', 'conversational');
           
           let finalCleanedChunks: string[] = [];
+          let lastUpdate = 0;
 
           for await (const event of generator) {
             if (event.type === 'error') {
@@ -92,7 +93,9 @@ export default function HumanizerPage() {
                   
                   const displayContent = [...finalCleanedChunks, progressMessage].filter(Boolean).join('\n\n\n');
                   
-                  if (Math.random() < 0.1 || percentage === 100) {
+                  const now = Date.now();
+                  if (now - lastUpdate > 64 || percentage === 100 || percentage === 0) {
+                    lastUpdate = now;
                     setVersions(prev => {
                       const updated = [...prev];
                       updated[index] = { 
