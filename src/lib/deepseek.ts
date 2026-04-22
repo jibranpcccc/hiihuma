@@ -1322,17 +1322,10 @@ export async function* humanizeSingleVersionStream(
       } else if (finalMatchHtml && finalMatchHtml[1]) {
         finalContent = finalMatchHtml[1];
       } else {
-        if (finalContent.indexOf('</thinking>') !== -1) {
-          finalContent = finalContent.substring(finalContent.lastIndexOf('</thinking>') + 11);
-        } else if (finalContent.indexOf('&lt;/thinking&gt;') !== -1) {
-          finalContent = finalContent.substring(finalContent.lastIndexOf('&lt;/thinking&gt;') + 17);
-        }
-        if (finalContent.indexOf('<thinking>') !== -1) {
-          finalContent = finalContent.substring(0, finalContent.indexOf('<thinking>'));
-        }
-        if (finalContent.indexOf('&lt;thinking&gt;') !== -1) {
-          finalContent = finalContent.substring(0, finalContent.indexOf('&lt;thinking&gt;'));
-        }
+        // Strip all thinking blocks completely
+        finalContent = finalContent.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+        finalContent = finalContent.replace(/&lt;thinking&gt;[\s\S]*?&lt;\/thinking&gt;/gi, '');
+        finalContent = finalContent.trim();
       }
 
       const cleanupTokens = [
@@ -1406,20 +1399,10 @@ async function processSingleChunk(
     } else if (finalMatchHtml && finalMatchHtml[1]) {
       finalContent = finalMatchHtml[1];
     } else {
-      // 2. Fallback: If no final_text tag, find the end of the thinking tags
-      if (finalContent.indexOf('</thinking>') !== -1) {
-        finalContent = finalContent.substring(finalContent.lastIndexOf('</thinking>') + 11);
-      } else if (finalContent.indexOf('&lt;/thinking&gt;') !== -1) {
-        finalContent = finalContent.substring(finalContent.lastIndexOf('&lt;/thinking&gt;') + 17);
-      }
-      
-      // Clear out any residual starting thoughts if it forgot to close
-      if (finalContent.indexOf('<thinking>') !== -1) {
-        finalContent = finalContent.substring(0, finalContent.indexOf('<thinking>'));
-      }
-      if (finalContent.indexOf('&lt;thinking&gt;') !== -1) {
-        finalContent = finalContent.substring(0, finalContent.indexOf('&lt;thinking&gt;'));
-      }
+      // Strip all thinking blocks completely
+      finalContent = finalContent.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
+      finalContent = finalContent.replace(/&lt;thinking&gt;[\s\S]*?&lt;\/thinking&gt;/gi, '');
+      finalContent = finalContent.trim();
     }
 
     // 3. Remove any residual meta text or unparsed headers
