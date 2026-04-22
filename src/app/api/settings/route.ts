@@ -8,7 +8,7 @@ export async function GET() {
   const s = loadSettings();
   const key = process.env.DEEPSEEK_API_KEY || process.env.NEXT_PUBLIC_DEEPSEEK_API_KEY || s.DeepSeekApiKey;
   return NextResponse.json({
-    deepSeekApiKey: key ? '***set***' : '',
+    deepSeekApiKey: key || '',
     hasDeepSeek: !!key,
   });
 }

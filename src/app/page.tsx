@@ -53,55 +53,26 @@ export default function HumanizerPage() {
     try {
       const promises = [0, 1].map(async (index) => {
         try {
-          const res = await fetch('/api/humanize', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content, versionIndex: index, voiceSample })
-          });
+          const settingsRes = await fetch('/api/settings');
+          const settings = await settingsRes.json();
+          const pApiKey = settings.deepSeekApiKey;
           
-          if (!res.ok) {
-            throw new Error(`HTTP Error: ${res.status}`);
+          if (!pApiKey) {
+            throw new Error('DeepSeek API Key is missing. Add it in Netlify settings or UI.');
           }
-          
-          const reader = res.body?.getReader();
-          if (!reader) throw new Error('No readable stream returned');
-          
-          const decoder = new TextDecoder('utf-8');
-          let buffer = '';
-          
-          let finalCleanedChunks: string[] = [];
-          let currentChunkTokens = '';
 
           const modelName = index === 0 ? "blader/humanizer (Anti-Patterns)" : "StealthHumanizer (Ninja Mode)";
+          
+          // Import dynamic client-side generator bypasses all Netlify limits
+          const { humanizeSingleVersionStream } = await import('@/lib/deepseek');
+          
+          const generator = humanizeSingleVersionStream(pApiKey, content, index, voiceSample, 'ninja', 'conversational');
+          
+          let finalCleanedChunks: string[] = [];
 
-          while (true) {
-            const { done, value } = await reader.read();
-            
-            if (value) {
-              buffer += decoder.decode(value, { stream: !done });
-            }
-
-            // Handle any complete lines in the buffer
-            const lines = buffer.split('\n');
-            // If done is true, the last string is the remaining buffer and must be processed
-            buffer = done ? '' : (lines.pop() || '');
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (!trimmed) continue;
-              
-              let event;
-              let parsed = false;
-              try {
-                event = JSON.parse(trimmed);
-                parsed = true;
-              } catch (e: any) {
-                // Ignore incomplete JSON chunks from buffer boundary issues
-              }
-
-              if (parsed && event) {
-                if (event.type === 'error') {
-                  throw new Error(event.message);
+          for await (const event of generator) {
+            if (event.type === 'error') {
+               throw new Error(event.message);
                 } else if (event.type === 'voice_generation') {
                   setVersions(prev => {
                     const updated = [...prev];
@@ -135,7 +106,6 @@ export default function HumanizerPage() {
                   }
                 } else if (event.type === 'chunk_final') {
                   finalCleanedChunks.push(event.content);
-                  currentChunkTokens = ''; 
                   
                   setVersions(prev => {
                     const updated = [...prev];
@@ -149,10 +119,6 @@ export default function HumanizerPage() {
                   });
                 }
               }
-            }
-
-            if (done) break;
-          }
         } catch (e: any) {
           setVersions(prev => {
             const updated = [...prev];
