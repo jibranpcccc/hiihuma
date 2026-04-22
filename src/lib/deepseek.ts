@@ -979,20 +979,21 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 CRITICAL INSTRUCTION FOR API OUTPUT: You sit behind an automated API. You MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. You MUST wrap your final, polished humanized text inside <final_text>...</final_text> tags. DO NOT output any conversational text.
 
-Provide:
-[THINKING_BLOCK]
+The output format must be:
+<thinking>
 1. Draft rewrite
 2. "What makes the below so obviously AI generated?" (brief bullets)
 3. A brief summary of changes made (optional, if helpful)
-[/THINKING_BLOCK]
-[FINAL_TEXT]
+</thinking>
+<final_text>
 Your final polished rewrite here
-[/FINAL_TEXT]
+</final_text>
 
 
 ## Full Example
 
 **Before (AI-sounding):**
+```
 > Great question! Here is an essay on this topic. I hope this helps!
 >
 > AI-assisted coding serves as an enduring testament to the transformative potential of large language models, marking a pivotal moment in the evolution of software development. In today's rapidly evolving technological landscape, these groundbreaking tools—nestled at the intersection of research and practice—are reshaping how engineers ideate, iterate, and deliver, underscoring their vital role in modern workflows.
@@ -1008,8 +1009,11 @@ Your final polished rewrite here
 > While specific details are limited based on available information, it could potentially be argued that these tools might have some positive effect. Despite challenges typical of emerging technologies—including hallucinations, bias, and accountability—the ecosystem continues to thrive. In order to fully realize this potential, teams must align with best practices.
 >
 > In conclusion, the future looks bright. Exciting times lie ahead as we continue this journey toward excellence. Let me know if you’d like me to expand on any section!
+```
 
-[THINKING_BLOCK]
+**After (human-sounding):**
+```
+<thinking>
 **Draft rewrite:**
 > AI coding assistants speed up some tasks. In a 2024 study by Google, developers using Codex completed simple functions 55% faster than a control group, but showed no improvement on debugging or architectural decisions.
 >
@@ -1043,8 +1047,8 @@ Your final polished rewrite here
 - Removed filler phrases and persuasive framing ("In order to", "At its core")
 - Removed generic positive conclusion ("the future looks bright", "exciting times lie ahead")
 - Made the voice more personal and less "assembled" (varied rhythm, fewer placeholders)
-[/THINKING_BLOCK]
-[FINAL_TEXT]
+</thinking>
+<final_text>
 AI coding assistants can make you faster at the boring parts. Not everything. Definitely not architecture.
 
 They're great at boilerplate: config files, test scaffolding, repetitive refactors. They're also great at sounding right while being wrong. I've accepted suggestions that compiled, passed lint, and still missed the point because I stopped paying attention.
@@ -1052,7 +1056,8 @@ They're great at boilerplate: config files, test scaffolding, repetitive refacto
 People I talk to tend to land in two camps. Some use it like autocomplete for chores and review every line. Others disable it after it keeps suggesting patterns they don't want. Both feel reasonable.
 
 The productivity metrics are slippery. GitHub can say Copilot users "accept 30% of suggestions," but acceptance isn't correctness, and correctness isn't value. If you don't have tests, you're basically guessing.
-[/FINAL_TEXT]
+</final_text>
+```
 
 ## Reference
 
@@ -1285,10 +1290,12 @@ export async function* humanizeSingleVersionStream(
         if (!isInsideFinalText) {
            const ft1 = fullRawContent.indexOf('<final_text>');
            const ft2 = fullRawContent.indexOf('&lt;final_text&gt;');
+           const ft3 = fullRawContent.indexOf('[FINAL_TEXT]');
            let startIndex = -1;
            
            if (ft1 !== -1) startIndex = ft1 + 12;
            else if (ft2 !== -1) startIndex = ft2 + 18;
+           else if (ft3 !== -1) startIndex = ft3 + 12;
            else if (fullRawContent.indexOf('</thinking>') !== -1) startIndex = fullRawContent.indexOf('</thinking>') + 11;
            else if (fullRawContent.length > 50 && fullRawContent.indexOf('<thinking>') === -1 && fullRawContent.indexOf('&lt;thinking&gt;') === -1) {
                // The model clearly isn't using XML tags for thinking. It has just started pouring out raw text.
@@ -1309,10 +1316,12 @@ export async function* humanizeSingleVersionStream(
         if (isInsideFinalText) {
            const end1 = fullRawContent.indexOf('</final_text>', yieldedLength);
            const end2 = fullRawContent.indexOf('&lt;/final_text&gt;', yieldedLength);
+           const end3 = fullRawContent.indexOf('[/FINAL_TEXT]', yieldedLength);
            
            let maxYieldIdx = fullRawContent.length;
            if (end1 !== -1) maxYieldIdx = end1;
            else if (end2 !== -1) maxYieldIdx = end2;
+           else if (end3 !== -1) maxYieldIdx = end3;
            
            if (maxYieldIdx > yieldedLength) {
              const stringToYield = fullRawContent.substring(yieldedLength, maxYieldIdx);
@@ -1326,21 +1335,27 @@ export async function* humanizeSingleVersionStream(
       let finalContent = fullRawContent;
       const finalMatch = finalContent.match(/<final_text>\s*([\s\S]*?)\s*(?:<\/final_text>|$)/i);
       const finalMatchHtml = finalContent.match(/&lt;final_text&gt;\s*([\s\S]*?)\s*(?:&lt;\/final_text&gt;|$)/i);
+      const finalMatchBracket = finalContent.match(/\[FINAL_TEXT\]\s*([\s\S]*?)\s*(?:\[\/FINAL_TEXT\]|$)/i);
       
       if (finalMatch && finalMatch[1]) {
         finalContent = finalMatch[1];
       } else if (finalMatchHtml && finalMatchHtml[1]) {
         finalContent = finalMatchHtml[1];
+      } else if (finalMatchBracket && finalMatchBracket[1]) {
+        finalContent = finalMatchBracket[1];
       } else {
         // Strip all thinking blocks completely
         finalContent = finalContent.replace(/<thinking>[\s\S]*?<\/thinking>/gi, '');
         finalContent = finalContent.replace(/&lt;thinking&gt;[\s\S]*?&lt;\/thinking&gt;/gi, '');
+        finalContent = finalContent.replace(/\[THINKING_BLOCK\][\s\S]*?\[\/THINKING_BLOCK\]/gi, '');
         finalContent = finalContent.trim();
       }
 
       const cleanupTokens = [
         "<final_text>", "</final_text>", "&lt;final_text&gt;", "&lt;/final_text&gt;",
         "<thinking>", "</thinking>", "&lt;thinking&gt;", "&lt;/thinking&gt;",
+        "[FINAL_TEXT]", "[/FINAL_TEXT]",
+        "[THINKING_BLOCK]", "[/THINKING_BLOCK]",
         "**Draft rewrite concept:**", "Draft rewrite concept:", 
         "Final rewrite:", "**Final rewrite:**",
         "Changes made:", "**Changes made:**"
