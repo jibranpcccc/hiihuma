@@ -148,7 +148,7 @@ export async function* callApiStream(
         max_tokens: maxTokens,
         temperature,
       }),
-      signal: AbortSignal.timeout(120000), // 2 minutes - browser tabs can't hold 10min streams
+      signal: AbortSignal.timeout(300000), // 5 minutes for streaming
     });
 
     if (!res.ok) throw new Error(`DeepSeek HTTP ${res.status}`);
@@ -1107,15 +1107,6 @@ CRITICAL RULES — Follow these EXACTLY:
 
 METHODOLOGY: Deep Semantic Restructuring: Do not just swap synonyms. Break the original text down to its core facts, throw away the original sentence structure entirely, and rebuild the concepts from scratch using a completely different syntactic tree.
 
-PERPLEXITY ENGINEERING: AI detectors measure "perplexity" — how surprising your word choices are.
-AI text scores LOW perplexity (always picks the most expected word).
-You must inject HIGH perplexity:
-- Use unexpected but completely natural word choices
-- Include idiomatic expressions specific to the topic niche
-- Reference specific concrete details (numbers, names, dates) instead of vague claims
-- Use domain-specific language that feels native, not inserted
-- Occasionally choose the second-best word instead of the obvious one
-
 ***CRITICAL INSTRUCTION FOR API OUTPUT:*** You sit behind an automated API. You MUST perform the full two-pass system conceptually (write an initial draft, evaluate it with "What makes the below so obviously AI generated?", and write a final draft). However, you MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. CRITICAL INSTRUCTION: You MUST wrap your final, polished humanized text (the final draft) inside <final_text>...</final_text> tags. DO NOT output any conversational text like "Here is the final draft". Your output must rely completely on these XML tags.`
 ];
 
@@ -1377,7 +1368,8 @@ export async function* humanizeSingleVersionStream(
         if (versionIndex === 1) salvaged = postprocess(salvaged);
         yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: salvaged };
       } else {
-        yield { type: 'error', message: e.message };
+        // Don't say "operation timed out" — give a readable message
+        yield { type: 'error', message: `DeepSeek took too long on chunk ${i+1}. Try shorter text or retry.` };
       }
       return;
     }
