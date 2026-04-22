@@ -980,14 +980,14 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 CRITICAL INSTRUCTION FOR API OUTPUT: You sit behind an automated API. You MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. You MUST wrap your final, polished humanized text inside <final_text>...</final_text> tags. DO NOT output any conversational text.
 
 Provide:
-<thinking>
+[THINKING_BLOCK]
 1. Draft rewrite
 2. "What makes the below so obviously AI generated?" (brief bullets)
 3. A brief summary of changes made (optional, if helpful)
-</thinking>
-<final_text>
+[/THINKING_BLOCK]
+[FINAL_TEXT]
 Your final polished rewrite here
-</final_text>
+[/FINAL_TEXT]
 
 
 ## Full Example
@@ -1009,7 +1009,7 @@ Your final polished rewrite here
 >
 > In conclusion, the future looks bright. Exciting times lie ahead as we continue this journey toward excellence. Let me know if you’d like me to expand on any section!
 
-<thinking>
+[THINKING_BLOCK]
 **Draft rewrite:**
 > AI coding assistants speed up some tasks. In a 2024 study by Google, developers using Codex completed simple functions 55% faster than a control group, but showed no improvement on debugging or architectural decisions.
 >
@@ -1043,8 +1043,8 @@ Your final polished rewrite here
 - Removed filler phrases and persuasive framing ("In order to", "At its core")
 - Removed generic positive conclusion ("the future looks bright", "exciting times lie ahead")
 - Made the voice more personal and less "assembled" (varied rhythm, fewer placeholders)
-</thinking>
-<final_text>
+[/THINKING_BLOCK]
+[FINAL_TEXT]
 AI coding assistants can make you faster at the boring parts. Not everything. Definitely not architecture.
 
 They're great at boilerplate: config files, test scaffolding, repetitive refactors. They're also great at sounding right while being wrong. I've accepted suggestions that compiled, passed lint, and still missed the point because I stopped paying attention.
@@ -1052,7 +1052,7 @@ They're great at boilerplate: config files, test scaffolding, repetitive refacto
 People I talk to tend to land in two camps. Some use it like autocomplete for chores and review every line. Others disable it after it keeps suggesting patterns they don't want. Both feel reasonable.
 
 The productivity metrics are slippery. GitHub can say Copilot users "accept 30% of suggestions," but acceptance isn't correctness, and correctness isn't value. If you don't have tests, you're basically guessing.
-</final_text>
+[/FINAL_TEXT]
 
 ## Reference
 
