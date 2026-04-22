@@ -148,7 +148,7 @@ export async function* callApiStream(
         max_tokens: maxTokens,
         temperature,
       }),
-      signal: AbortSignal.timeout(600000), // 10 minutes timeout
+      signal: AbortSignal.timeout(120000), // 2 minutes - browser tabs can't hold 10min streams
     });
 
     if (!res.ok) throw new Error(`DeepSeek HTTP ${res.status}`);
@@ -156,11 +156,23 @@ export async function* callApiStream(
     const reader = res.body?.getReader();
     if (!reader) throw new Error('No readable stream returned');
     
+    let readTimeout: ReturnType<typeof setTimeout> | null = null;
+    const resetTimeout = () => {
+      if (readTimeout) clearTimeout(readTimeout);
+    };
+
     const decoder = new TextDecoder('utf-8');
     let buffer = '';
 
     while (true) {
-      const { done, value } = await reader.read();
+      resetTimeout();
+      const readPromise = reader.read();
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        readTimeout = setTimeout(() => reject(new Error('Stream read timeout')), 15000);
+      });
+      const { done, value } = await Promise.race([readPromise, timeoutPromise]) as any;
+      resetTimeout();
+      
       if (done) break;
       
       buffer += decoder.decode(value, { stream: true });
@@ -1356,7 +1368,17 @@ export async function* humanizeSingleVersionStream(
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
 
     } catch (e: any) {
-      yield { type: 'error', message: e.message };
+      // If we got some content despite error, still emit what we have
+      if (fullRawContent.length > 50) {
+        let salvaged = fullRawContent
+          .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
+          .replace(/<\/?final_text>/gi, '')
+          .trim();
+        if (versionIndex === 1) salvaged = postprocess(salvaged);
+        yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: salvaged };
+      } else {
+        yield { type: 'error', message: e.message };
+      }
       return;
     }
   }
