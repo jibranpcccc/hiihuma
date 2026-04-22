@@ -1365,7 +1365,7 @@ export async function* humanizeSingleVersionStream(
         finalContent = finalContent.split(token).join('');
       }
 
-      finalContent = finalContent.replace(/^[:\* \- \n]+/, '').replace(/[\* \n]+$/, '').trim();
+      finalContent = finalContent.replace(/^[\s:]+/, '').replace(/\s+$/, '').trim();
       
       if (versionIndex === 1) {
         finalContent = postprocess(finalContent);
@@ -1444,6 +1444,8 @@ async function processSingleChunk(
     const cleanupTokens = [
       "<final_text>", "</final_text>", "&lt;final_text&gt;", "&lt;/final_text&gt;",
       "<thinking>", "</thinking>", "&lt;thinking&gt;", "&lt;/thinking&gt;",
+      "[FINAL_TEXT]", "[/FINAL_TEXT]",
+      "[THINKING_BLOCK]", "[/THINKING_BLOCK]",
       "**Draft rewrite concept:**", "Draft rewrite concept:", 
       "Final rewrite:", "**Final rewrite:**",
       "Changes made:", "**Changes made:**"
@@ -1454,7 +1456,7 @@ async function processSingleChunk(
     }
 
     // Replace weird formatting deepseek might output when it starts
-    finalContent = finalContent.replace(/^[:\* \- \n]+/, '').replace(/[\* \n]+$/, '').trim();
+    finalContent = finalContent.replace(/^[\s:]+/, '').replace(/\s+$/, '').trim();
     
     // 4. Apply StealthHumanizer post-processing (Layer 2) for Ninja Mode
     // This adds deterministic AI-phrase removal, collocation swaps, sentence manipulation,

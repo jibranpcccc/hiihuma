@@ -124,7 +124,7 @@ function manipulateSentenceLengths(text: string): string {
       if (
         wc < 8 && i < sentences.length - 1 &&
         sentences[i + 1].trim().split(/\s+/).length < 8 &&
-        chance(0.15)
+        chance(0.05)
       ) {
         const next = sentences[i + 1].trim();
         const conjunction = randomPick(['and', 'but', 'so']);
@@ -181,7 +181,10 @@ function disruptFlow(text: string): string {
     // 10% chance: start with a conjunction
     if (chance(0.10)) {
       const conjunctions = ['And ', 'But ', 'So '];
-      result[0] = randomPick(conjunctions) + result[0].charAt(0).toLowerCase() + result[0].slice(1);
+      const alreadyStartsWithConjunction = /^(And|But|So|Or|Yet)\b/i.test(result[0]);
+      if (!alreadyStartsWithConjunction) {
+        result[0] = randomPick(conjunctions) + result[0].charAt(0).toLowerCase() + result[0].slice(1);
+      }
     }
 
     return result.join(' ');
