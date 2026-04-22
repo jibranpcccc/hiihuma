@@ -27,7 +27,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'it is likely', to: ['probably', 'chances are', "I'd bet"] },
   { from: 'it is unlikely', to: ['probably not', 'doubtful', 'a long shot'] },
   { from: 'it is necessary', to: ['you need to', 'it has to happen', 'required'] },
-  { from: 'it is interesting', to: ['pretty cool actually', 'neat', 'fascinating when you think about it'] },
+
   { from: 'it is difficult', to: ["it's hard", 'not easy', 'tough', 'tricky'] },
   { from: 'it is true that', to: ['sure', 'granted', 'fair point', 'admittedly'] },
   { from: 'it should be noted', to: ['keep in mind', 'worth knowing', 'one thing to remember'] },
@@ -53,13 +53,13 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'in the realm of', to: ['in the world of', 'when it comes to', 'within'] },
   { from: 'in the context of', to: ['when you look at', 'in the case of', 'given'] },
   { from: 'in the case of', to: ['when it comes to', 'for', 'with'] },
-  { from: 'in addition to', to: ['besides', 'on top of', 'along with', 'plus'] },
+
   { from: 'in terms of', to: ['when it comes to', 'regarding', 'as for', 'looking at'] },
   { from: 'in light of', to: ['given', 'considering', 'because of', 'with'] },
   { from: 'in spite of', to: ['despite', 'even with', 'even though', 'regardless of'] },
   { from: 'in relation to', to: ['about', 'regarding', 'when it comes to', 'connected to'] },
   { from: 'in comparison to', to: ['compared to', 'versus', 'next to', 'against'] },
-  { from: 'in contrast to', to: ['unlike', 'compared to', 'on the flip side', 'while'] },
+
   { from: 'in response to', to: ['as an answer to', 'reacting to', 'to address'] },
   { from: 'make a decision', to: ['decide', 'make up your mind', 'land on something', 'figure out what to do'] },
   { from: 'make a difference', to: ['change things', 'have an impact', 'actually matter'] },
@@ -67,8 +67,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'make use of', to: ['use', 'leverage', 'take advantage of', 'put to work'] },
   { from: 'make a contribution', to: ['chip in', 'add something', 'do your part'] },
   { from: 'make progress', to: ['move forward', 'get somewhere', 'make headway'] },
-  { from: 'take into account', to: ['consider', 'factor in', 'think about', 'keep in mind'] },
-  { from: 'take into consideration', to: ['consider', 'factor in', 'think about', 'weigh'] },
+
   { from: 'take advantage of', to: ['use', 'leverage', 'capitalize on', 'jump on'] },
   { from: 'play a role', to: ['matter', 'be a factor', 'make a difference', 'have a say'] },
   { from: 'play a crucial role', to: ['be a big deal', 'really matter', 'make a huge difference'] },
@@ -77,14 +76,14 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'play an important role', to: ['really matter', 'be important', 'carry weight'] },
   { from: 'on the other hand', to: ['then again', 'but then', 'on the flip side', 'that said'] },
   { from: 'on the one hand', to: ['for one thing', 'sure', 'on one side'] },
-  { from: 'at the same time', to: ['simultaneously', 'all the while', 'but also'] },
+
   { from: 'at the end of the day', to: ['ultimately', 'when all is said and done', 'in the end'] },
   { from: 'for the most part', to: ['mostly', 'generally', 'by and large', 'usually'] },
   { from: 'for the purpose of', to: ['to', 'for', 'so we can', 'in order to'] },
   { from: 'as a matter of fact', to: ['actually', 'in fact', 'truthfully', 'honestly'] },
   { from: 'as a result of', to: ['because of', 'thanks to', 'due to', 'from'] },
   { from: 'as a result', to: ['so', 'because of this', "that's why", 'consequently'] },
-  { from: 'as well as', to: ['and', 'plus', 'along with', 'alongside'] },
+
   { from: 'with regard to', to: ['about', 'regarding', 'when it comes to', 'on the topic of'] },
   { from: 'with respect to', to: ['about', 'regarding', 'in terms of', 'on'] },
   { from: 'with the exception of', to: ['except', 'other than', 'besides'] },
@@ -128,9 +127,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'according to', to: ['per', 'based on what', 'if you look at', 'says'] },
   { from: 'prior to', to: ['before', 'leading up to', 'ahead of'] },
   { from: 'subsequent to', to: ['after', 'following', 'once'] },
-  { from: 'moreover', to: ['plus', 'also', 'on top of that', 'and'] },
-  { from: 'furthermore', to: ['also', 'plus', 'on top of that', 'beyond that'] },
-  { from: 'additionally', to: ['also', 'plus', 'on top of that', 'and another thing'] },
+
   { from: 'nevertheless', to: ['still', 'but', 'even so', 'that said'] },
   { from: 'consequently', to: ['so', 'as a result', "that's why", 'because of that'] },
   { from: 'subsequently', to: ['then', 'after that', 'later', 'next'] },
@@ -143,7 +140,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'paramount', to: ['key', 'top priority', 'most important', 'critical'] },
   { from: 'underscore', to: ['highlight', 'stress', 'point out', 'show'] },
   { from: 'delve into', to: ['dig into', 'look at', 'explore', 'get into'] },
-  { from: 'sheds light on', to: ['helps explain', 'clarifies', 'makes sense of', 'reveals'] },
+
   { from: 'landscape', to: ['world', 'space', 'scene', 'area', 'environment'] },
   { from: 'a myriad of', to: ['lots of', 'tons of', 'all kinds of', 'a bunch of'] },
   { from: 'multifaceted', to: ['complex', 'many-sided', 'layered', 'complicated'] },
@@ -164,10 +161,9 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'state-of-the-art', to: ['latest', 'cutting-edge', 'modern', 'top-of-the-line'] },
   { from: 'cutting-edge', to: ['latest', 'bleeding-edge', 'newest', 'advanced'] },
   { from: 'best practices', to: ['smart approaches', 'proven methods', 'what works', 'standard approaches'] },
-  { from: "in today's world", to: ['now', 'these days', 'right now', 'at this point'] },
-  { from: "in today's society", to: ['nowadays', 'these days', 'right now'] },
+
   { from: 'in the modern era', to: ['now', 'these days', 'today', 'in this day and age'] },
-  { from: 'in this day and age', to: ['now', 'these days', 'today', 'right now'] },
+
   { from: 'a deep dive into', to: ['a closer look at', 'digging into', 'exploring', 'looking at'] },
   { from: 'deep dive', to: ['closer look', 'detailed look', 'proper examination', 'real analysis'] },
   { from: 'unlocking the potential', to: ['tapping into', 'making the most of', 'getting more out of', 'using'] },
@@ -196,8 +192,7 @@ export const COLLOCATIONS: Collocation[] = [
   { from: 'fostering a culture of', to: ['building a culture of', 'creating an environment for', 'encouraging'] },
   { from: 'the proliferation of', to: ['the spread of', 'the growth of', 'more and more', 'the rise in'] },
   { from: 'proliferation', to: ['spread', 'growth', 'increase', 'expansion'] },
-  { from: 'demystifying', to: ['explaining', 'breaking down', 'making sense of', 'clarifying'] },
-  { from: 'thought-provoking', to: ['interesting', 'makes you think', 'worth reflecting on', 'stimulating'] },
+
   { from: 'reshaping the way', to: ['changing how', 'transforming how', 'shifting how'] },
   { from: 'bridging the gap', to: ['closing the gap', 'connecting', 'filling the gap', 'linking'] },
   { from: 'a cornerstone of', to: ['a key part of', 'central to', 'essential to', 'a foundation of'] },

@@ -1351,7 +1351,8 @@ export async function* humanizeSingleVersionStream(
       
       if (versionIndex === 1) {
         finalContent = postprocess(finalContent);
-        finalContent = await flagAndRehuman(apiKey, finalContent);
+        // Remove flagAndRehuman — it runs a 3rd AI pass on already post-processed
+        // text and introduces new AI patterns on top of broken collocation swaps
       }
       
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
@@ -1433,7 +1434,8 @@ async function processSingleChunk(
     // flow disruption, and paragraph randomization ON TOP of the AI rewrite.
     if (versionIndex === 1) {
       finalContent = postprocess(finalContent);
-      finalContent = await flagAndRehuman(apiKey, finalContent);
+      // Remove flagAndRehuman — it runs a 3rd AI pass on already post-processed
+      // text and introduces new AI patterns on top of broken collocation swaps
     }
     
     res.content = finalContent;
