@@ -1351,8 +1351,6 @@ export async function* humanizeSingleVersionStream(
       
       if (versionIndex === 1) {
         finalContent = postprocess(finalContent);
-        // Remove flagAndRehuman — it runs a 3rd AI pass on already post-processed
-        // text and introduces new AI patterns on top of broken collocation swaps
       }
       
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
@@ -1434,56 +1432,10 @@ async function processSingleChunk(
     // flow disruption, and paragraph randomization ON TOP of the AI rewrite.
     if (versionIndex === 1) {
       finalContent = postprocess(finalContent);
-      // Remove flagAndRehuman — it runs a 3rd AI pass on already post-processed
-      // text and introduces new AI patterns on top of broken collocation swaps
     }
     
     res.content = finalContent;
   }
 
   return res;
-}
-
-// Pass 2: Per-Sentence Flagging
-async function flagAndRehuman(apiKey: string, chunk: string): Promise<string> {
-  // Step 1: Ask model which sentences still sound AI-generated
-  const flagResult = await callApi(
-    apiKey,
-    `Read this text and return ONLY a JSON array of the exact sentences that still sound AI-generated. 
-Return raw JSON array only, no explanation. Text:\n\n${chunk}`,
-    'You are an AI detection expert. Return only a JSON array of flagged sentences.',
-    0.3,
-    1000
-  );
-
-  let flagged: string[] = [];
-  try {
-    flagged = JSON.parse(cleanJson(flagResult.content));
-    if (!Array.isArray(flagged)) flagged = [];
-  } catch { return chunk; }
-
-  if (!flagged.length) return chunk;
-
-  // Step 2: Rewrite ONLY the flagged sentences
-  let result = chunk;
-  for (const sentence of flagged) {
-    if (!sentence || sentence.length < 10 || typeof sentence !== 'string') continue;
-    
-    const fix = await callApi(
-      apiKey,
-      `Rewrite ONLY this sentence to sound completely human. 
-Keep the same meaning. Return ONLY the rewritten sentence, nothing else. Do not wrap in quotes.
-Sentence: "${sentence}"`,
-      'You are a human writing expert. Rewrite the sentence naturally and imperceptibly.',
-      0.9,
-      200
-    );
-    if (fix.success && fix.content) {
-      // Escape special regex characters in the sentence just in case
-      let contentToReplace = fix.content.trim();
-      // Only replace the first match
-      result = result.replace(sentence, contentToReplace);
-    }
-  }
-  return result;
 }
