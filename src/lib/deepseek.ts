@@ -958,6 +958,8 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ## Output Format
 
+**CRITICAL LENGTH RULE**: Your output MUST be the same length as the input. Do NOT shorten, summarize, or compress. Every paragraph in the input must produce an equally long paragraph in the output. If the input is 1000 words, your output must be 1000 words. Rewrite every sentence — do not skip any.
+
 CRITICAL INSTRUCTION FOR API OUTPUT: You sit behind an automated API. You MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. You MUST wrap your final, polished humanized text inside <final_text>...</final_text> tags. DO NOT output any conversational text.
 
 The output format must be:
@@ -1090,6 +1092,12 @@ CRITICAL RULES — Follow these EXACTLY:
    - No lists of three adjectives: "comprehensive, robust, and innovative"
    - No balanced sentence pairs: "not only X but also Y"
    - No "plays a [adjective] role" constructions
+
+7. LENGTH PRESERVATION (non-negotiable):
+   - Output MUST match input length word-for-word in volume
+   - NEVER shorten, cut, or summarize any section
+   - Every sentence in input = a rewritten sentence in output
+   - A 5000-word input = a 5000-word output
 
 METHODOLOGY: Deep Semantic Restructuring: Do not just swap synonyms. Break the original text down to its core facts, throw away the original sentence structure entirely, and rebuild the concepts from scratch using a completely different syntactic tree.
 
@@ -1245,6 +1253,7 @@ export async function* humanizeSingleVersionStream(
   chunks = chunks.filter(c => c.length > 0);
 
   for (let i = 0; i < chunks.length; i++) {
+    let retryCount = 0;
     const chunkContent = chunks[i];
     const prompt = HUMANIZER_PROMPTS[versionIndex] || HUMANIZER_PROMPTS[0];
     const wordCount = chunkContent.split(/\s+/).length;
@@ -1265,7 +1274,7 @@ export async function* humanizeSingleVersionStream(
       let isInsideFinalText = false;
 
       const streamTokens = (versionIndex === 1) ? 8192 : 8000;
-      for await (const token of callApiStream(apiKey, userMessage, prompt, 0.8, streamTokens)) {
+      for await (const token of callApiStream(apiKey, userMessage, prompt, 0.92, streamTokens)) {
         fullRawContent += token;
         
         if (!isInsideFinalText) {
@@ -1353,6 +1362,12 @@ export async function* humanizeSingleVersionStream(
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
 
     } catch (e: any) {
+      if (retryCount < 1) {
+        retryCount++;
+        i--;  // retry same chunk
+        await new Promise(r => setTimeout(r, 1500));
+        continue;
+      }
       // If we got some content despite error, still emit what we have
       if (fullRawContent.length > 50) {
         let salvaged = fullRawContent
@@ -1397,7 +1412,7 @@ async function processSingleChunk(
     apiKey,
     userMessage,
     prompt,
-    0.8,
+    0.92,
     8000 
   );
 
