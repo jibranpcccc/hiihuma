@@ -34,7 +34,7 @@ function removeFragmentedHeaders(text: string): string {
       const headingWords = heading.replace(/^#+\s+/, '').toLowerCase().split(/\s+/);
       const oneLinerWords = oneLiner.toLowerCase().split(/\s+/);
       const overlap = headingWords.filter((w: string) => oneLinerWords.includes(w)).length;
-      if (overlap >= 2 && oneLiner.length < 80) {
+      if (overlap >= 3 && oneLiner.length < 60) {
         return heading + '\n\n'; // strip the one-liner
       }
       return match;
@@ -134,6 +134,25 @@ function swapSynonyms(text: string): string {
   }
   return result.join('');
 }
+
+// ==================== FILLER PHRASES (human conversational rhythm) ====================
+const FILLER_PHRASES = [
+  'in my experience,',
+  "from what I've seen,",
+  "I'd argue that",
+  'honestly,',
+  'the way I see it,',
+  'from my perspective,',
+  'if you think about it,',
+  'interestingly,',
+  'to be fair,',
+  'in practice,',
+  'at least in my view,',
+  'one thing that stands out is',
+  'what strikes me is',
+  "it's worth pointing out that",
+  'as far as I can tell,',
+];
 // ==================== SENTENCE LENGTH MANIPULATION ====================
 
 function manipulateSentenceLengths(text: string): string {
@@ -187,6 +206,14 @@ function manipulateSentenceLengths(text: string): string {
           }
         }
         if (found) continue;
+      }
+
+      // 15% chance to prepend a filler phrase to longer sentences
+      if (words.length > 15 && chance(0.15)) {
+        const filler = randomPick(FILLER_PHRASES);
+        const lowered = sentence.charAt(0).toLowerCase() + sentence.slice(1);
+        result.push(filler + ' ' + lowered);
+        continue;
       }
 
       result.push(sentence);
@@ -257,6 +284,38 @@ function addPunctuationNoise(text: string): string {
   return result;
 }
 
+
+// ==================== SENTENCE REORDERING (from StealthHumanizer) ====================
+function reorderSentences(paragraph: string): string {
+  const sentences = splitSentences(paragraph);
+  if (sentences.length <= 2) return paragraph;
+
+  const pronounPattern = /\b(he|she|it|they|this|that|these|those|his|her|its|their)\b/i;
+
+  const middle = sentences.slice(1, -1);
+  if (middle.length <= 1) return paragraph;
+
+  const swapCount = Math.max(1, Math.floor(middle.length * (0.2 + Math.random() * 0.1)));
+  const result = [...middle];
+
+  for (let s = 0; s < swapCount; s++) {
+    const i = Math.floor(Math.random() * result.length);
+    let j = Math.floor(Math.random() * result.length);
+    while (j === i && result.length > 1) j = Math.floor(Math.random() * result.length);
+    if (i === j) continue;
+
+    const sentenceI = result[i];
+    const sentenceJ = result[j];
+
+    if (pronounPattern.test(sentenceI.split(' ')[0]) || pronounPattern.test(sentenceJ.split(' ')[0])) {
+      if (chance(0.5)) continue;
+    }
+
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+
+  return [sentences[0], ...result, sentences[sentences.length - 1]].join(' ');
+}
 // ==================== PARAGRAPH STRUCTURE RANDOMIZATION ====================
 
 function randomizeParagraphs(text: string): string {
@@ -321,6 +380,10 @@ export function postprocess(text: string): string {
 
   // 6. Paragraph randomization
   result = randomizeParagraphs(result);
+
+  // Sentence reordering within paragraphs
+  const _paragraphs = splitParagraphs(result);
+  result = joinParagraphs(_paragraphs.map(p => reorderSentences(p)));
 
   // 7. Additional random collocation passes
   for (let i = 0; i < 3; i++) {
