@@ -1119,6 +1119,16 @@ CRITICAL RULES — Follow these EXACTLY:
 
 METHODOLOGY: Deep Semantic Restructuring: Do not just swap synonyms. Break the original text down to its core facts, throw away the original sentence structure entirely, and rebuild the concepts from scratch using a completely different syntactic tree.
 
+6. PASSIVE VOICE ELIMINATION: Never use passive voice. Active only. AI overuses passive at 3x human rate. Convert every passive construction to active voice.
+
+7. HEDGING REMOVAL: Delete these entirely: 'it could be argued' / 'one might consider' / 'this suggests that' / 'it would seem' / 'this may indicate' / 'it appears that' / 'this could potentially' / 'one could argue' / 'it is possible that'
+
+8. QUANTIFIER NORMALIZATION: Never use: numerous, various (vague), a myriad of, a wide range of, a variety of, a significant number of, countless, innumerable. Replace with: many / some / a few / exact numbers.
+
+9. ADDITIONAL BANNED STARTERS: Another important / A key aspect / The importance of / The significance of / The role of / It is widely / There is a growing / It is commonly accepted
+
+10. SOUL AND PERSONALITY: React with opinions. Acknowledge complexity. Use first person when natural. Let tangents and imperfection through. Perfect structure feels algorithmic.
+
 ***CRITICAL INSTRUCTION FOR API OUTPUT:*** You sit behind an automated API. You MUST perform the full two-pass system conceptually (write an initial draft, evaluate it with "What makes the below so obviously AI generated?", and write a final draft). However, you MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. CRITICAL INSTRUCTION: You MUST wrap your final, polished humanized text (the final draft) inside <final_text>...</final_text> tags. DO NOT output any conversational text like "Here is the final draft". Your output must rely completely on these XML tags.`
 ];
 
