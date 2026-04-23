@@ -1129,6 +1129,11 @@ METHODOLOGY: Deep Semantic Restructuring: Do not just swap synonyms. Break the o
 
 10. SOUL AND PERSONALITY: React with opinions. Acknowledge complexity. Use first person when natural. Let tangents and imperfection through. Perfect structure feels algorithmic.
 
+
+CLOSING PARAGRAPH RULE: The final paragraph must end with a hard, direct statement or specific action — never a soft landing. BANNED closing patterns: "one of those things", "way better to figure out before X not after", "might be exactly what you want", "either option works", "ultimately it's up to you", "it depends on your situation", "at the end of the day". The last sentence must commit to a real recommendation. No diplomatic hedging on the exit.
+
+MARKDOWN RULE: Every section header must use **Title** format with a matching opening and closing **. Never leave a bold marker unclosed. Every ** that opens must have a closing **.
+
 ***CRITICAL INSTRUCTION FOR API OUTPUT:*** You sit behind an automated API. You MUST perform the full two-pass system conceptually (write an initial draft, evaluate it with "What makes the below so obviously AI generated?", and write a final draft). However, you MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. CRITICAL INSTRUCTION: You MUST wrap your final, polished humanized text (the final draft) inside <final_text>...</final_text> tags. DO NOT output any conversational text like "Here is the final draft". Your output must rely completely on these XML tags.`
 ];
 

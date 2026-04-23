@@ -524,5 +524,38 @@ export function postprocess(text: string): string {
     .replace(/\.+\./g, '.')
     .trim();
 
+
+  // 9. Soft-landing phrase detection and cleanup
+  const SOFT_LANDING_PHRASES = [
+    "one of those things",
+    "way better to figure out",
+    "this isn't a skill issue",
+    "kind of funny, actually",
+    "might be exactly what you want",
+    "starts bold and mellows",
+    "can actually deliver that perfectly",
+    "it's worth thinking about",
+    "before you finalize your decision",
+    "only you can decide",
+    "it depends on your",
+    "either option could work",
+    "at the end of the day",
+    "ultimately, it's up to you",
+  ];
+  for (const phrase of SOFT_LANDING_PHRASES) {
+    if (result.toLowerCase().includes(phrase.toLowerCase())) {
+      console.warn('[humanize] Soft-landing phrase detected:', phrase);
+    }
+  }
+
+
+  // 10. Fix unclosed bold markdown headers (e.g. **Title without closing **)
+  result = result.replace(/\*\*([^\n*]+)(?<!\*\*)\n/g, (match, title) => {
+    if (!match.trimEnd().endsWith('**')) {
+      return '**' + title.trim() + '**\n';
+    }
+    return match;
+  });
+
   return result;
 }
