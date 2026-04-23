@@ -550,12 +550,14 @@ export function postprocess(text: string): string {
 
 
   // 10. Fix unclosed bold markdown headers (e.g. **Title without closing **)
-  result = result.replace(/\*\*([^\n*]+)(?<!\*\*)\n/g, (match, title) => {
-    if (!match.trimEnd().endsWith('**')) {
-      return '**' + title.trim() + '**\n';
+  result = result.split('\n').map(line => {
+    const stripped = line.trimEnd();
+    if (stripped.startsWith('**') && !stripped.endsWith('**') 
+        && (stripped.match(/\*\*/g) || []).length === 1) {
+      return stripped + '**';
     }
-    return match;
-  });
+    return line;
+  }).join('\n');
 
   return result;
 }
