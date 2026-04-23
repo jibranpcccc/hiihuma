@@ -1,3 +1,4 @@
+import { getRandomSafeSynonym } from './synonyms';
 // StealthHumanizer - Non-LLM Post-Processing Engine (Layer 2)
 // Pure deterministic transformations that break AI statistical fingerprints
 
@@ -102,6 +103,37 @@ function aggressiveSynonymSwap(text: string): string {
   return result;
 }
 
+
+// ==================== WORD-LEVEL SYNONYM SWAPPING (from StealthHumanizer) ====================
+function swapSynonyms(text: string): string {
+  const words = text.split(/(\s+)/);
+  const result: string[] = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const word = words[i];
+    if (!word || /^\s+$/.test(word) || /^[^a-zA-Z]+$/.test(word) || word.length < 4) {
+      result.push(word);
+      continue;
+    }
+    if (word === word.toUpperCase()) {
+      result.push(word);
+      continue;
+    }
+    if (Math.random() < 0.25) {
+      const synonym = getRandomSafeSynonym(word);
+      if (synonym) {
+        if (/^[A-Z]/.test(word) && /^[a-z]/.test(synonym)) {
+          result.push(synonym.charAt(0).toUpperCase() + synonym.slice(1));
+        } else {
+          result.push(synonym);
+        }
+        continue;
+      }
+    }
+    result.push(word);
+  }
+  return result.join('');
+}
 // ==================== SENTENCE LENGTH MANIPULATION ====================
 
 function manipulateSentenceLengths(text: string): string {
@@ -272,6 +304,7 @@ export function postprocess(text: string): string {
   result = removeFragmentedHeaders(result);
 
   // 1. Aggressive AI vocabulary removal
+  result = swapSynonyms(result);
   result = aggressiveSynonymSwap(result);
 
   // 2. Collocation replacements (150+ AI phrase → human phrase)
