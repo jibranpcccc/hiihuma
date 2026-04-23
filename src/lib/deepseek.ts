@@ -958,6 +958,24 @@ Avoiding AI patterns is only half the job. Sterile, voiceless writing is just as
 
 ## Output Format
 
+
+**PASSIVE VOICE**: Remove passive voice — convert to active. "was created by" → "they created". "is used to" → "people use it to". AI writes passive at 2-3x human rate.
+
+**HEDGING PHRASES** — Remove these entirely:
+"it could be argued", "one might consider", "this suggests that", "it would seem", "this may indicate", "it appears that", "this could potentially", "one could argue"
+
+**QUANTIFIERS** — Replace vague AI quantifiers:
+"numerous" → "many" or a number; "various/multiple" → list them; "a myriad of", "a wide range of", "a significant number of" → delete or replace with plain words
+
+**MORE BANNED SENTENCE STARTERS** (add to existing list):
+"Another important", "A key aspect", "The importance of", "The significance of", "The role of", "It is widely", "There is a growing", "It is commonly"
+
+**SOUL — Add personality**:
+- React to facts with opinions, not neutral reporting
+- Use "I" when it fits: "I keep coming back to..." or "Here's what gets me..."
+- Let complexity show: "impressive but also kind of unsettling"
+- Let some mess in — tangents and half-formed thoughts are human
+
 **CRITICAL LENGTH RULE**: Your output MUST be the same length as the input. Do NOT shorten, summarize, or compress. Every paragraph in the input must produce an equally long paragraph in the output. If the input is 1000 words, your output must be 1000 words. Rewrite every sentence — do not skip any.
 
 CRITICAL INSTRUCTION FOR API OUTPUT: You sit behind an automated API. You MUST output all your reasoning, initial drafts, and critiques inside XML <thinking>...</thinking> tags. You MUST wrap your final, polished humanized text inside <final_text>...</final_text> tags. DO NOT output any conversational text.

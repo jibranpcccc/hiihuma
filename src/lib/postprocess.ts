@@ -356,6 +356,121 @@ function randomizeParagraphs(text: string): string {
  * Apply all non-LLM post-processing transformations to humanized text.
  * This runs AFTER the AI rewrite to further break statistical fingerprints.
  */
+
+// ==================== HUMAN VOICE INJECTION (from StealthHumanizer) ====================
+function injectHumanVoice(text: string): string {
+  let result = text;
+
+  // Deterministic contraction expansion
+  const expansions: [RegExp, string][] = [
+    [/\bdo not\b/gi, "don't"],
+    [/\bcannot\b/gi, "can't"],
+    [/\bcan not\b/gi, "can't"],
+    [/\bwill not\b/gi, "won't"],
+    [/\bis not\b/gi, "isn't"],
+    [/\bare not\b/gi, "aren't"],
+    [/\bit is\b/g, "it's"],
+    [/\bthat is\b/g, "that's"],
+    [/\bthere is\b/g, "there's"],
+    [/\bwe are\b/gi, "we're"],
+    [/\bthey are\b/gi, "they're"],
+    [/\bI am\b/g, "I'm"],
+    [/\bwould not\b/gi, "wouldn't"],
+    [/\bshould not\b/gi, "shouldn't"],
+    [/\bcould not\b/gi, "couldn't"],
+    [/\bdid not\b/gi, "didn't"],
+    [/\bdoes not\b/gi, "doesn't"],
+    [/\bhave not\b/gi, "haven't"],
+    [/\bhas not\b/gi, "hasn't"],
+  ];
+
+  // Apply contractions with ~70% probability each
+  for (const [pattern, replacement] of expansions) {
+    if (chance(0.70)) {
+      result = result.replace(pattern, replacement);
+    }
+  }
+
+  // 10% chance: start a random mid-paragraph sentence with a conjunction
+  if (chance(0.10)) {
+    const paragraphs = splitParagraphs(result);
+    const pIdx = Math.floor(Math.random() * paragraphs.length);
+    const sentences = splitSentences(paragraphs[pIdx]);
+    if (sentences.length > 1) {
+      const sIdx = 1 + Math.floor(Math.random() * (sentences.length - 1));
+      const conjunction = randomPick(['And', 'But', 'So', 'Plus', 'Yet']);
+      sentences[sIdx] = conjunction + ' ' + sentences[sIdx].charAt(0).toLowerCase() + sentences[sIdx].slice(1);
+      paragraphs[pIdx] = sentences.join(' ');
+      result = joinParagraphs(paragraphs);
+    }
+  }
+
+  // 5% chance: inject a parenthetical aside before a late sentence period
+  if (chance(0.05)) {
+    const asides = [
+      'which is interesting', 'interestingly enough', 'if you think about it',
+      "at least that's the idea", 'in my view', 'for what it's worth',
+      'honestly', 'which makes sense when you think about it'
+    ];
+    const aside = randomPick(asides);
+    const lastPeriod = result.lastIndexOf('.');
+    if (lastPeriod > 40) {
+      result = result.slice(0, lastPeriod) + ` (${aside})` + result.slice(lastPeriod);
+    }
+  }
+
+  return result;
+}
+
+// ==================== TRANSITION WORD FREQUENCY CONTROL ====================
+function adjustTransitionFrequency(text: string): string {
+  const words = text.split(/\s+/).length;
+  const transitionWords = [
+    'however', 'therefore', 'moreover', 'furthermore', 'additionally',
+    'consequently', 'nevertheless', 'meanwhile', 'subsequently', 'thus',
+    'hence', 'accordingly', 'similarly', 'likewise', 'conversely'
+  ];
+
+  let currentTransitions = 0;
+  const lower = text.toLowerCase();
+  for (const w of transitionWords) {
+    const matches = lower.match(new RegExp(`\\b${w}\\b`, 'g'));
+    if (matches) currentTransitions += matches.length;
+  }
+
+  const per1000 = (currentTransitions / Math.max(words, 1)) * 1000;
+
+  // Human average is ~4-6 transitions per 1000 words
+  // If we're over 9 per 1000 (1.5x average), remove 30%
+  if (per1000 > 9) {
+    let result = text;
+    let toRemove = Math.floor(currentTransitions * 0.3);
+    for (const w of transitionWords) {
+      if (toRemove <= 0) break;
+      const regex = new RegExp(`\\b${w}\\b[,]?\\s*`, 'gi');
+      result = result.replace(regex, (match) => {
+        if (toRemove > 0) { toRemove--; return ''; }
+        return match;
+      });
+    }
+    return result.replace(/  +/g, ' ').replace(/\.\s*\./g, '.');
+  }
+  return text;
+}
+
+// ==================== INVISIBLE CHARACTER INJECTION (breaks n-gram fingerprinting) ====================
+export function addInvisibleCharacters(text: string): string {
+  const invisibleChars = ['\u200B', '\u200C', '\u200D', '\uFEFF'];
+  const words = text.split(/(\s+)/);
+  return words.map((word, i) => {
+    if (i % 7 === 0 && word.trim().length > 3 && !/^[#*`]/.test(word)) {
+      const char = invisibleChars[Math.floor(Math.random() * invisibleChars.length)];
+      const pos = Math.floor(word.length * 0.6);
+      return word.slice(0, pos) + char + word.slice(pos);
+    }
+    return word;
+  }).join('');
+}
 export function postprocess(text: string): string {
   let result = text;
 
@@ -363,6 +478,9 @@ export function postprocess(text: string): string {
   result = removeFragmentedHeaders(result);
 
   // 1. Aggressive AI vocabulary removal
+  // Early light synonym pass (double-pass = StealthHumanizer strategy)
+  if (chance(0.5)) result = swapSynonyms(result);
+
   result = swapSynonyms(result);
   result = aggressiveSynonymSwap(result);
 
@@ -385,12 +503,21 @@ export function postprocess(text: string): string {
   const _paragraphs = splitParagraphs(result);
   result = joinParagraphs(_paragraphs.map(p => reorderSentences(p)));
 
+  // Human voice: contractions, conjunction starters, parentheticals
+  result = injectHumanVoice(result);
+
+  // Transition frequency control — trim AI overuse of 'however/therefore/moreover'
+  result = adjustTransitionFrequency(result);
+
   // 7. Additional random collocation passes
   for (let i = 0; i < 3; i++) {
     result = applyRandomCollocation(result);
   }
 
   // 8. Clean up
+  // Invisible character injection — breaks byte-level n-gram fingerprinting
+  result = addInvisibleCharacters(result);
+
   result = result
     .replace(/  +/g, ' ')
     .replace(/\n{3,}/g, '\n\n')
