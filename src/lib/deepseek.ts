@@ -88,7 +88,7 @@ async function callApi(
   apiKey: string,
   userMessage: string,
   systemPrompt: string = 'You are a professional assistant. Generate unique, natural-sounding response. Never include quotes or formatting marks around your response.',
-  temperature: number = 0.8,
+  temperature: number = 0.92,
   maxTokens: number = 800
 ): Promise<AiResult> {
   await aiThrottle();
@@ -127,7 +127,7 @@ export async function* callApiStream(
   apiKey: string,
   userMessage: string,
   systemPrompt: string = 'You are a professional assistant. Generate unique, natural-sounding response. Never include quotes or formatting marks around your response.',
-  temperature: number = 0.8,
+  temperature: number = 0.92,
   maxTokens: number = 8000
 ): AsyncGenerator<string, void, unknown> {
   await aiThrottle();
@@ -493,26 +493,7 @@ export const HUMANIZER_NAMES = [
 ];
 
 const HUMANIZER_PROMPTS = [
-  `You are the ultimate text humanizer, strictly following this comprehensive set of 29 anti-patterns to remove all AI footprints.\n\n---
-name: humanizer
-version: 2.5.1
-description: |
-  Remove signs of AI-generated writing from text. Use when editing or reviewing
-  text to make it sound more natural and human-written. Based on Wikipedia's
-  comprehensive "Signs of AI writing" guide. Detects and fixes patterns including:
-  inflated symbolism, promotional language, superficial -ing analyses, vague
-  attributions, em dash overuse, rule of three, AI vocabulary words, passive
-  voice, negative parallelisms, and filler phrases.
-license: MIT
-compatibility: claude-code opencode
-allowed-tools:
-  - Read
-  - Write
-  - Edit
-  - Grep
-  - Glob
-  - AskUserQuestion
----
+  `You are the ultimate text humanizer with 29 strict anti-patterns to remove all AI footprints from text.
 
 # Humanizer: Remove AI Writing Patterns
 
@@ -1367,9 +1348,7 @@ export async function* humanizeSingleVersionStream(
 
       finalContent = finalContent.replace(/^[\s:]+/, '').replace(/\s+$/, '').trim();
       
-      if (versionIndex === 1) {
-        finalContent = postprocess(finalContent);
-      }
+      finalContent = postprocess(finalContent);
       
       yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: finalContent };
 
@@ -1380,7 +1359,7 @@ export async function* humanizeSingleVersionStream(
           .replace(/<thinking>[\s\S]*?<\/thinking>/gi, '')
           .replace(/<\/?final_text>/gi, '')
           .trim();
-        if (versionIndex === 1) salvaged = postprocess(salvaged);
+        salvaged = postprocess(salvaged);
         yield { type: 'chunk_final', chunkIndex: i + 1, totalChunks: chunks.length, content: salvaged };
       } else {
         // Don't say "operation timed out" — give a readable message
@@ -1461,9 +1440,7 @@ async function processSingleChunk(
     // 4. Apply StealthHumanizer post-processing (Layer 2) for Ninja Mode
     // This adds deterministic AI-phrase removal, collocation swaps, sentence manipulation,
     // flow disruption, and paragraph randomization ON TOP of the AI rewrite.
-    if (versionIndex === 1) {
-      finalContent = postprocess(finalContent);
-    }
+    finalContent = postprocess(finalContent);
     
     res.content = finalContent;
   }

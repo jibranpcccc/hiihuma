@@ -244,7 +244,7 @@ function randomizeParagraphs(text: string): string {
     const sentences = splitSentences(p);
 
     // 15% chance to split a paragraph into two
-    if (sentences.length >= 4 && chance(0.15)) {
+    if (sentences.length >= 4 && chance(0.07)) {
       const splitPoint = 1 + Math.floor(Math.random() * (sentences.length - 2));
       const first = sentences.slice(0, splitPoint).join(' ');
       const second = sentences.slice(splitPoint).join(' ');
